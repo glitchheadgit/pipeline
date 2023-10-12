@@ -7,5 +7,7 @@
     "n_base_limit": "0",
     "average_qual": "25",
     "length_required": "80",
-    "working_thread_n": "12"
+    "working_thread_n": "12",
+    "host_dir": "host",
+    "human_dir": "human"
 }

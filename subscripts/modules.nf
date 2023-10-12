@@ -55,7 +55,7 @@ process fastqc {
 
 process multiqc {
     debug true
-    conda 'bioconda::multiqc=1.16'
+    conda 'bioconda::multiqc=1.16 conda-forge::imp=2.19.0'
     publishDir "${params.work_dir}/${mqc_dir}", mode: "copy"
     input:
     path(reports)
@@ -77,7 +77,7 @@ process bbmap_index {
     output:
     path "*"
     script:
-    println "$ref.getName() will be indexed as $ref_number"
+    println "${ref.getName()} will be indexed as $ref_number"
     """
     bbmap.sh \
     ref=${ref} \
@@ -99,9 +99,10 @@ process bbmap {
     tuple val(name), path(reads)
     val ref
     val ref_number
-    bbmap_dir
+    val bbmap_dir
     output:
     tuple val(name), path("*unconc*{1,2}*"), emit: bbmap_tuple
+    path "*txt", emit: stats
     path "*"
     script:
     """
@@ -124,11 +125,14 @@ process merge_bbmap_statistics {
     debug true
     conda "conda-forge::pandas=2.1.1"
     publishDir "${params.work_dir}/${bbmap_dir}/statistics", mode: "copy"
+    input:
+    path stats
+    val bbmap_dir
     output:
     path "*"
     script:
     """
-    python3 ${workflow.projectDir}/merge_bbmap_stat.py ${params.work_dir}/${bbmap_dir}/statistics/*
+    python3 ${workflow.projectDir}/subscripts/merge_bbmap_stat.py *
     """
 }
 
