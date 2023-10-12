@@ -9,5 +9,6 @@
     "length_required": "80",
     "working_thread_n": "12",
     "host_dir": "host",
-    "human_dir": "human"
+    "human_dir": "human",
+    "bbmap_memory": ""
 }

@@ -78,13 +78,22 @@ process bbmap_index {
     path "*"
     script:
     println "${ref.getName()} will be indexed as $ref_number"
-    """
-    bbmap.sh \
-    ref=${ref} \
-    build=${ref_number} \
-    path="${params.work_dir}/bbmap_index" \
-    -eoom -Xmx${params.bbmap_memory}
-    """
+    if ( params.bbmap_memory ) {
+        """
+        bbmap.sh \
+        ref=${ref} \
+        build=${ref_number} \
+        path="${params.work_dir}/bbmap_index" \
+        -eoom -Xmx${params.bbmap_memory}
+        """
+    } else {
+        """
+        bbmap.sh \
+        ref=${ref} \
+        build=${ref_number} \
+        path="${params.work_dir}/bbmap_index" \
+        """
+    }
 }
 
 
@@ -105,19 +114,32 @@ process bbmap {
     path "*txt", emit: stats
     path "*"
     script:
-    """
-    bbmap.sh \
-    ref=${ref} \
-    build=${ref_number} \
-    path="${params.work_dir}/bbmap_index" \
-    in=${reads[0]} \
-    in2=${reads[1]} \
-    out=${name}.bam \
-    outu=${name}_R#_unmapped.fa \
-    statsfile="${name}_stats.txt" \
-    -eoom \
-    -Xmx${params.bbmap_memory}
-    """
+    if ( params.bbmap_memory ) {
+        """
+        bbmap.sh \
+        ref=${ref} \
+        build=${ref_number} \
+        path="${params.work_dir}/bbmap_index" \
+        in=${reads[0]} \
+        in2=${reads[1]} \
+        out=${name}.bam \
+        outu=${name}_R#_unmapped.fa \
+        statsfile="${name}_stats.txt" \
+        -eoom -Xmx${params.bbmap_memory}
+        """
+    } else {
+        """
+        bbmap.sh \
+        ref=${ref} \
+        build=${ref_number} \
+        path="${params.work_dir}/bbmap_index" \
+        in=${reads[0]} \
+        in2=${reads[1]} \
+        out=${name}.bam \
+        outu=${name}_R#_unmapped.fa \
+        statsfile="${name}_stats.txt" \
+        """
+    }
 }
 
 
