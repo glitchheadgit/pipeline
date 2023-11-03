@@ -1,10 +1,10 @@
-include {preprocess} from "${projectDir}/01_preprocess.nf"
-include {mapping} from "${projectDir}/03_mapping.nf"
-include {classify_reads} from "${projectDir}/04_classify_reads.nf"
-include {assembly_megahit} from "${projectDir}/05_assembly_megahit.nf"
-include {binning_metawrap} from "${projectDir}/06_binning_metawrap.nf"
-include {binrefinement_metawrap} from "${projectDir}/06_binrefine_metawrap.nf"
-include {gtdbtk_classify} from "${projectDir}/07_classify_bins.nf"
+include {preprocess} from "${projectDir}/submodules/01_preprocess.nf"
+include {mapping} from "${projectDir}/submodules/03_mapping.nf"
+include {classify_reads} from "${projectDir}/submodules/04_classify_reads.nf"
+include {assembly_megahit} from "${projectDir}/submodules/05_assembly_megahit.nf"
+include {binning_metawrap} from "${projectDir}/submodules/06_binning_metawrap.nf"
+include {binrefinement_metawrap} from "${projectDir}/submodules/06_binrefine_metawrap.nf"
+include {gtdbtk_classify} from "${projectDir}/submodules/07_classify_bins.nf"
 
 workflow {
     //preprocessing
