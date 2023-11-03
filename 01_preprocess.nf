@@ -17,7 +17,7 @@ workflow preprocess {
     multiqc( reports, 'multiqc' )
 
     emit:
-    fastp.out.trimmed
+    trimmed = fastp.out.trimmed
 }
 
 

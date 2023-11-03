@@ -6,7 +6,7 @@ import groovy.io.FileType
 ref_list = params.ref.split(/,/)
 c = 1
 //finding if there builded indexes in working directory
-def dir = new File("${params.work_dir}/ref/genome")
+def dir = new File("${workflow.launchDir}/${params.work_dir}/ref/genome")
 if ( dir.exists() ) {
     def list = []
     dir.eachFileRecurse (FileType.DIRECTORIES) { file ->
@@ -22,4 +22,3 @@ workflow {
         .set { ref_ch }
     bbmap_index( ref_ch )
 }
-//    
