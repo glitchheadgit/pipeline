@@ -1,5 +1,23 @@
 # PIPE_001
 
+## Info
+
+Pipeline consists of 3 separate scripts:
+
+1. bbmap_index.nf - Makes indexes for your references and gives them appropriate identificator
+2. main.nf - includes following submodules:
+    * preprocessing
+    * mapping
+    * classify_reads
+    * assembly
+    * binning
+3. additional.nf:
+    * binrefinement
+    * bins classification
+
+All processes and their parameters can be found in subscripts/process.nf
+All information about submodules - in according nf scripts
+
 ## Requirements
 
 ### GTDB-Tk
