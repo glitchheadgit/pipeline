@@ -15,7 +15,7 @@ Pipeline consists of 3 separate scripts:
     * binrefinement
     * bins classification
 
-All processes and their parameters can be found in subscripts/process.nf
+All processes and their parameters can be found in subscripts/process.nf \
 All information about submodules - in according nf scripts
 
 ## Requirements
