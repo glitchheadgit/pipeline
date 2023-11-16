@@ -53,7 +53,8 @@ mamba create -p /path/to/pipeline/mw-env -c ursky metawrap-mg=1.3.2
 ```
 
 #### Make corrections to metaWRAP bin_refinement.sh script:
-bash```
+
+```bash
 sed -i 's/(( $SIZE > 50000)) &&//g' /path/to/pipeline/mw-env/bin/metawrap-modules/bin_refinement.sh 
 ```
 
