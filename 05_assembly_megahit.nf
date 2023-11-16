@@ -1,19 +1,16 @@
-include {megahit} from "${projectDir}/subscripts/modules.nf"
+include {megahit} from "${projectDir}/subscripts/process.nf"
 
 
 workflow assembly_megahit {
     take:
     reads1
     reads2
-    stop
-
-    emit:
-    reads1
-    reads2
-    assembly = megahit.out.assembly
 
     main:
     megahit( reads1, reads2 )
+    
+    emit:
+    assembly = megahit.out.assembly
 }
 
 workflow {

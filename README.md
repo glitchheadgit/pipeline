@@ -1,4 +1,4 @@
-# Pipeline info
+# PIPE_001
 
 ## Requirements
 
@@ -7,7 +7,7 @@
 1. GTDB-Tk requires ~84G of external data that needs to be downloaded and unarchived:
 
 ```bash
-wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz # or mirror - https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz
+wget https://data.gtdb.ecogenomic.org/releases/latest/auxillary_files/gtdbtk_data.tar.gz # mirror: https://data.ace.uq.edu.au/public/gtdb/data/releases/latest/auxillary_files/gtdbtk_data.tar.gz
 tar xvzf gtdbtk_data.tar.gz
 ```
 2. Link GTDB to the "gtdbtk_data" folder in pipeline:
@@ -30,21 +30,21 @@ tar xvzf checkm_data_2015_01_16.tar.gz
 ln -s path/to/checkm_data /path/to/pipeline/checkm_data
 ```
 
-### Kaiju
+### Kraken 2
 
-1. Kaiju requires ~102G of external data that needs to be downloaded and unarchived:
-
-```bash
-wget https://kaiju-idx.s3.eu-central-1.amazonaws.com/2023/kaiju_db_progenomes_2023-05-25
-tar xvzf kaiju_db_progenomes_2023-05-25
-```
-2. Link Kaiju db to the "kaiju_data" folder in pipeline:
+1. Kraken requires ~16Gb of external data that needs to be downloaded and unarchived:
 
 ```bash
-ln -s path/to/kaiju_data /path/to/pipeline/kaiju_data
+wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_16gb_20231009.tar.gz
+tar xvzf k2_standard_16gb_20231009.tar.gz
+```
+2. Link Kraken2 db to the "kraken2_data" folder in pipeline:
+
+```bash
+ln -s path/to/kraken2_data /path/to/pipeline/kraken2_data
 ```
 
-### Installing metaWRAP environment
+### Installing metaWRAP
 
 **Install it in the pipeline directory!**
 
@@ -52,10 +52,70 @@ ln -s path/to/kaiju_data /path/to/pipeline/kaiju_data
 mamba create -p /path/to/pipeline/mw-env -c ursky metawrap-mg=1.3.2
 ```
 
-
-## Preprocessing
-```bash
-nextflow run pipeline/preprocess.nf \
---reads 'pipeline/fq_check/*{1,2}.fq'
+#### Make corrections to metaWRAP bin_refinement.sh script:
+bash```
+sed -i 's/(( $SIZE > 50000)) &&//g' /path/to/pipeline/mw-env/bin/metawrap-modules/bin_refinement.sh 
 ```
 
+## How to start pipeline
+
+### Make reference index
+
+```bash
+nextflow run bbmap_index.nf \
+-with-report \
+-with-conda \
+--ref host.fna,human.fna
+```
+
+### main.nf
+
+```bash
+nextflow run preprocess.nf \
+-with-conda \
+-with-report \
+--ref host.fna,human.fna \
+--ref_number 1,2 \
+--reads 'pipeline/fq_check/*{1,2}.fq' \
+--maxbin2 --concoct --metabat2 \ # specify at least one binner
+--output pipeline_results
+```
+
+Optional parameters of main.nf with their default options:
+
+1. fastp options
+    * --compress_level 7
+    * --poly_g_min_len 5
+    * --poly_x_min_len 10
+    * --cut_mean_quality 27
+    * --n_base_limit 0
+    * --average_qual 25
+    * --length_required 80
+    * --working_thread_n 12
+2. kraken2, bracken options
+    * --classification_lvl "S"
+3. bbmap options
+    * --host_dir "host"
+    * --human_dir "human"
+    * --bbmap_memory false
+    * --bbmap_cpus 4
+4. metawrap binning options
+    * --concoct false
+    * --metabat2 false
+    * --maxbin2 false
+
+### additional.nf
+
+```bash
+nextflow run additional.nf \
+-with-conda \
+-with-report \
+--maxbin2 --concoct --metabat2 \ # duplicate binners that were specified in main.nf
+--output pipeline_results # folder should be the same as --output of main.nf
+```
+
+Optional parameters of additional.nf with their default values:
+
+1. metawrap bin refinement options
+    * metawrap_completion 50
+    * metawrap_contamination 30

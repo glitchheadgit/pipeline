@@ -1,4 +1,4 @@
-include {bbmap_index} from  "${projectDir}/subscripts/modules.nf"
+include {bbmap_index} from  "${projectDir}/subscripts/process.nf"
 import static groovy.io.FileType.FILES
 import groovy.io.FileType
 
@@ -20,5 +20,6 @@ workflow {
         .fromPath( ref_list.toList() )
         .map { tuple( it, c++ ) }
         .set { ref_ch }
+    ref_ch.view()
     bbmap_index( ref_ch )
 }

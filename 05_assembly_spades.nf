@@ -1,4 +1,4 @@
-include {spades} from "${projectDir}/subscripts/modules.nf"
+include {spades} from "${projectDir}/subscripts/process.nf"
 
 
 workflow assembly {

@@ -1,4 +1,4 @@
-include {gtdbtk_classify} from "${projectDir}/subscripts/modules.nf"
+include {gtdbtk_classify} from "${projectDir}/subscripts/process.nf"
 
 
 workflow gtdbtk {

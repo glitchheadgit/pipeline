@@ -1,6 +1,6 @@
-include {fastp} from "${projectDir}/subscripts/modules.nf"
-include {multiqc} from "${projectDir}/subscripts/modules.nf"
-include {fastqc as fqc_before; fastqc as fqc_after} from "${projectDir}/subscripts/modules.nf"
+include {fastp} from "${projectDir}/subscripts/process.nf"
+include {multiqc} from "${projectDir}/subscripts/process.nf"
+include {fastqc as fqc_before; fastqc as fqc_after} from "${projectDir}/subscripts/process.nf"
 
 
 workflow preprocess {

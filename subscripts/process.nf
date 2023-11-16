@@ -1,8 +1,8 @@
 process fastp {
     debug true
     conda 'bioconda::fastp=0.23.4'
-    publishDir "${params.work_dir}/fastp/reports", pattern: "{*html,*json}", mode: "copy"
-    publishDir "${params.work_dir}/fastp", pattern: "*fq", mode: "copy"
+    publishDir "${params.output}/fastp/reports", pattern: "{*html,*json}", mode: "copy"
+    publishDir "${params.output}/fastp", pattern: "*gz", mode: "copy"
     input:
     tuple val(f_name), path(fa)
     output:
@@ -37,10 +37,9 @@ process fastp {
 
 
 process fastqc {
-    debug true
     conda 'bioconda::fastqc=0.12.1'
-    publishDir "${params.work_dir}/${fqc_dir}", pattern: "*html", mode: "copy"
-    publishDir "${params.work_dir}/${fqc_dir}/zip", pattern: "*zip", mode: "copy"
+    publishDir "${params.output}/${fqc_dir}", pattern: "*html", mode: "copy"
+    publishDir "${params.output}/${fqc_dir}/zip", pattern: "*zip", mode: "copy"
     input:
     tuple val(index), path(reads)
     val fqc_dir
@@ -56,8 +55,8 @@ process fastqc {
 
 process multiqc {
     debug true
-    conda 'bioconda::multiqc=1.16 conda-forge::imp=2.19.0'
-    publishDir "${params.work_dir}/${mqc_dir}", mode: "copy"
+    conda 'bioconda::multiqc conda-forge::imp=2.19.0'
+    publishDir "${params.output}/${mqc_dir}", mode: "copy"
     input:
     path(reports)
     val mqc_dir
@@ -82,7 +81,7 @@ process bbmap_index {
         bbmap.sh \
         ref=${ref} \
         build=${ref_number} \
-        path="${workflow.launchDir}/${params.work_dir}" \
+        path="${workflow.launchDir}" \
         -eoom -Xmx${params.bbmap_memory}
         """
     } else {
@@ -90,7 +89,7 @@ process bbmap_index {
         bbmap.sh \
         ref=${ref} \
         build=${ref_number} \
-        path="${workflow.launchDir}/${params.work_dir}"
+        path="${workflow.launchDir}"
         """
     }
 }
@@ -101,10 +100,10 @@ process bbmap {
     maxForks 4
     conda "bioconda::bbmap=39.01 bioconda::samtools=1.18"
     cpus params.bbmap_cpus
-    publishDir "${params.work_dir}/${bbmap_dir}/", pattern: "*bam", mode: "copy"
-    publishDir "${params.work_dir}/${bbmap_dir}/unmapped", pattern: "*_unmapped.fq.gz", mode: "copy"
-    publishDir "${params.work_dir}/${bbmap_dir}/mapped", pattern: "*_mapped.fq.gz", mode: "copy"
-    publishDir "${params.work_dir}/${bbmap_dir}/statistics", pattern: "*txt", mode: "copy"
+    publishDir "${params.output}/${bbmap_dir}/", pattern: "*bam", mode: "copy"
+    publishDir "${params.output}/${bbmap_dir}/unmapped", pattern: "*_unmapped.fq.gz", mode: "copy"
+    publishDir "${params.output}/${bbmap_dir}/mapped", pattern: "*_mapped.fq.gz", mode: "copy"
+    publishDir "${params.output}/${bbmap_dir}/statistics", pattern: "*txt", mode: "copy"
     input:
     tuple val(name), path(reads)
     val ref
@@ -124,7 +123,7 @@ process bbmap {
     bbmap.sh \
     ref=${ref} \
     build=${ref_number} \
-    path="${workflow.launchDir}/${params.work_dir}" \
+    path="${workflow.launchDir}" \
     in=${reads[0]} \
     in2=${reads[1]} \
     out=${name}.bam \
@@ -136,10 +135,42 @@ process bbmap {
 }
 
 
+process kraken2 {
+	conda = 'bioconda::kraken2'
+	maxForks 1
+	publishDir "${params.output}/kraken2", pattern: "*kreport", mode: "copy"
+	publishDir "${params.output}/kraken2/unclassified_reads", pattern: "*unclassified*", mode: "copy"
+	input:
+    tuple val(index), path(reads)
+	output:
+    tuple val(index), path("*.kreport"), emit: kraken2_out
+	path "*"
+	script:
+	"""
+	kraken2 --db ${projectDir}/kraken2_data --report ${index}.kreport --gzip-compressed --paired --unclassified-out ${index}_unclassified_#.fq ${reads[0]} ${reads[1]}
+	"""
+}
+
+
+process bracken {
+    conda = 'bioconda::bracken'
+    publishDir "${params.output}/bracken", pattern: "*bracken", mode: 'copy'
+    input:
+    tuple val(index), path(kreport)
+    val class_lvl
+    output:
+    tuple val(index), path("*.bracken"), emit: bracken_out
+    path "*"
+    script:
+    """
+    bracken -d $params.kraken_db -i $kreport -o ${index}.bracken -l $class_lvl
+    """
+}
+
+
 process merge_bbmap_statistics {
-    debug true
     conda "conda-forge::pandas=2.1.1"
-    publishDir "${params.work_dir}/${bbmap_dir}/statistics", mode: "copy"
+    publishDir "${params.output}/${bbmap_dir}/statistics", mode: "copy"
     input:
     path stats
     val bbmap_dir
@@ -147,7 +178,7 @@ process merge_bbmap_statistics {
     path "*"
     script:
     """
-    python3 ${workflow.projectDir}/subscripts/merge_bbmap_stat.py *
+    python3 ${workflow.projectDir}/subscripts/merge_bbmap_stat.py -i *
     """
 }
 
@@ -156,7 +187,7 @@ process spades {
     debug true
     maxForks 1
     conda "bioconda::spades=3.15.5"
-    publishDir "${params.work_dir}/spades", mode: "copy"
+    publishDir "${params.output}/spades", mode: "copy"
     input:
     val index
     val reads
@@ -186,7 +217,7 @@ process metaphlan { // metaphlan --install --bowtie2db <database folder> needed
     debug true
     conda "bioconda::metaphlan=4.06"
     memory params.metaphlan_memory
-    publishDir "${params.work_dir}/metaphlan", mode: "copy"
+    publishDir "${params.output}/metaphlan", mode: "copy"
     input:
     tuple val(name),path(reads)
     val db
@@ -209,7 +240,7 @@ process metaphlan { // metaphlan --install --bowtie2db <database folder> needed
 process metaphlan_merge {
     debug true
     conda "bioconda::metaphlan=4.06"
-    publishDir "${params.work_dir}/metaphlan", mode: "copy"
+    publishDir "${params.output}/metaphlan", mode: "copy"
     input:
     path metaphlan_output
     output:
@@ -225,13 +256,13 @@ process megahit {
     debug true
     maxForks 1
     conda "bioconda::megahit=1.2.9"
-    publishDir "${params.work_dir}", mode: "copy"
+    publishDir "${params.output}", mode: "copy"
     input:
     path reads1
     path reads2
     output:
-    path "megahit/*"
     path "megahit/final.contigs.fa", emit: assembly
+    path "megahit"
     script:
     reads1 = reads1.join(',')
     reads2 = reads2.join(',')
@@ -244,29 +275,38 @@ process megahit {
 }
 
 
-process metawrap_binning {
-    debug true
+process metawrapbin {
     conda "${projectDir}/mw-env" //"ursky::metawrap-mg=1.3.2"
     maxForks 1
-    publishDir "${params.work_dir}", mode: "copy"
-    beforeScript """ export CHECKM_DATA_PATH="${projectDir}/checkm_data" """
+    publishDir "${params.output}", mode: "copy"
     input:
     path assembly
-    path megahit_reads1, stageAs: "*_1.fastq"
-    path megahit_reads2, stageAs: "*_2.fastq"
+    path reads1, stageAs: 'read*_1.fastq'
+    path reads2, stageAs: 'read*_2.fastq'
     output:
     path "metawrap_bins/*"
-    path "metawrap_bins/metabat2_bins", emit: metabat2_bins, optional: true
-    path "metawrap_bins/concoct_bins", emit: concoct_bins, optional: true
-    path "metawrap_bins/maxbin2_bins", emit: maxbin2_bins, optional: true
+    path "metawrap_bins/metabat2_bins/*", emit: metabat2_bins, optional: true
+    path "metawrap_bins/concoct_bins/*", emit: concoct_bins, optional: true
+    path "metawrap_bins/maxbin2_bins/*", emit: maxbin2_bins, optional: true
     script:
+    binners = ""
+    if (params.concoct) {
+        binners += "--concoct "
+    }
+    if (params.maxbin2) {
+        binners += "--maxbin2 "
+    }
+    if (params.metabat2) {
+        binners += "--metabat2 "
+    }
     """
+    echo ${projectDir}/checkm_data | checkm data setRoot
     metawrap binning \
-    --metabat2 --maxbin2 --concoct \
+    $binners\
     --run-checkm \
     -a $assembly \
     -o metawrap_bins \
-    $megahit_reads1 $megahit_reads2
+    $reads1 $reads2
     """
 }
 // --maxbin2 --concoct 
@@ -275,30 +315,79 @@ process metawrap_binrefinement {
     debug true
     conda "${projectDir}/mw-env"
     maxForks 1
-    publishDir "${params.work_dir}", mode: "copy"
-    beforeScript """ export CHECKM_DATA_PATH="${projectDir}/checkm_data" """
+    errorStrategy "ignore"
+    publishDir "${params.output}", mode: "copy"
     input:
-    path metabat2_bins
-    path concoct_bins
-    path maxbin2_bins
+    path metabat2_bins, stageAs: "metabat2/*"
+    path concoct_bins, stageAs: "concoct/*"
+    path maxbin2_bins, stageAs: "maxbin2/*"
     output:
     path "metawrap_binref/*"
-    path "metawrap_binref/bin_refinement/metawrap*bins/*fa", emit: refined_bins
+    path "metawrap_binref/metawrap*bins/*fa", emit: refined_bins
     script:
+    not_nulls = []
+    bin_dirs = ''
+    if (!(metabat2_bins ==~ /.*null.*/)) {
+        not_nulls.add('metabat2')
+    }
+    if (!(concoct_bins ==~ /.*null.*/)) {
+        not_nulls.add('concoct')
+    }
+    if (!(maxbin2_bins ==~ /.*null.*/)) {
+        not_nulls.add('maxbin2')
+    }
+    if (not_nulls.size == 3) {
+        bin_dirs += "-A ${not_nulls[0]} -B ${not_nulls[1]} -C ${not_nulls[2]}"
+    }
+    if (not_nulls.size == 2) {
+        bin_dirs += "-A ${not_nulls[0]} -B ${not_nulls[1]}"
+    }
+    if (not_nulls.size == 1) {
+        bin_dirs += "-A ${not_nulls[0]}"
+    }
     """
     metawrap bin_refinement \
     -o metawrap_binref \
-    -A $metabat2_bins -B $concoct_bins -C $maxbin2_bins \
-    -c $params.metawrap_completion -x $params.metawrap_contamination
+    -t 8 \
+    -m 100 \
+    -c $params.metawrap_completion -x $params.metawrap_contamination \
+    $bin_dirs
     """
 }
 
 
+process checkm {
+    debug true
+    conda "${projectDir}/mw-env"
+    publishDir "metawrap_binref/bin_refinement/metawrap*bins/", mode: "copy"
+    input:
+    path refined_bins, stageAs: "metawrap_bins/*"
+    output:
+    path "*"
+    script:
+    """
+    bash ${projectDir}/mw-env/bin/metawrap-scripts/run_checkm.sh metawrap_bins
+    """
+}
+
+
+process gunzip {
+    input:
+    path "R1_*.fq.gz"
+    path "R2_*.fq.gz"
+    output:
+    path "R1*.fq", emit: reads1
+    path "R2*.fq", emit: reads2
+    script:
+    """
+    gunzip -k --force R*.gz
+    """
+}
 process gtdbtk_classify {
+    debug true
     conda "bioconda::gtdbtk=2.3.2"
     maxForks 1
-    publishDir "${params.work_dir}", mode: "copy"
-    beforeScript """ export GTDBTK_DATA_PATH="${projectDir}/gtdbtk_data" """
+    publishDir "${params.output}", mode: "copy"
     input:
     path bin, stageAs: "bins/*"
     output:
@@ -306,9 +395,10 @@ process gtdbtk_classify {
     path "gtdbtk_classify/*"
     script:
     """
+    export GTDBTK_DATA_PATH=${projectDir}/gtdbtk_data
     mkdir scratch
     gtdbtk classify_wf \
-    --mash_db ${workflow.launchDir}/${params.work_dir}/mash_db \
+    --mash_db ${workflow.launchDir}/${params.output}/mash_db \
     --genome_dir bins/ \
     --extension fa \
     --out_dir gtdbtk_classify \
@@ -322,7 +412,7 @@ process kaiju {
     debug true
     conda "bioconda::kaiju"
     maxForks 1
-    publishDir "${params.work_dir}/kaiju", mode: "copy"
+    publishDir "${params.output}/kaiju", mode: "copy"
     input:
     path reads1
     path reads2

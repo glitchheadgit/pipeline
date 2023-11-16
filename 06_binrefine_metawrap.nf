@@ -1,4 +1,4 @@
-include {metawrap_binrefinement} from "${projectDir}/subscripts/modules.nf"
+include {metawrap_binrefinement} from "${projectDir}/subscripts/process.nf"
 
 workflow binrefinement_metawrap {
     take:
@@ -10,7 +10,7 @@ workflow binrefinement_metawrap {
     metawrap_binrefinement( metabat2_bins, concoct_bins, maxbin2_bins )
 
     emit:
-    refined_bins = metawrap_binning.out.refined_bins
+    refined_bins = metawrap_binrefinement.out.refined_bins
 }
 
 workflow {
