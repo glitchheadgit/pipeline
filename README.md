@@ -16,7 +16,7 @@ Pipeline consists of 3 chief scripts:
     * bins classification
 
 All processes and their parameters can be found in subscripts/process.nf \
-All information about submodules - in according nf scripts
+All information about submodules - in according nf scripts. Each submodule can be launched on its own as separate script!
 
 ## Requirements
 
