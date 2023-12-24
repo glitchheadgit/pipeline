@@ -143,7 +143,7 @@ process kraken2 {
 	input:
     tuple val(index), path(reads)
 	output:
-    tuple val(index), path("*.kreport"), emit: kraken2_out
+    tuple val(index), path("*.kreport"), emit: stats
 	path "*"
 	script:
 	"""
@@ -157,13 +157,12 @@ process bracken {
     publishDir "${params.output}/bracken", pattern: "*bracken", mode: 'copy'
     input:
     tuple val(index), path(kreport)
-    val class_lvl
     output:
-    tuple val(index), path("*.bracken"), emit: bracken_out
+    tuple val(index), path("*.bracken"), emit: stats
     path "*"
     script:
     """
-    bracken -d $params.kraken_db -i $kreport -o ${index}.bracken -l $class_lvl
+    bracken -d $params.kraken_db -i $kreport -o ${index}.bracken -l $params.classification_lvl
     """
 }
 
@@ -285,9 +284,9 @@ process metawrapbin {
     path reads2, stageAs: 'read*_2.fastq'
     output:
     path "metawrap_bins/*"
-    path "metawrap_bins/metabat2_bins/*", emit: metabat2_bins, optional: true
-    path "metawrap_bins/concoct_bins/*", emit: concoct_bins, optional: true
-    path "metawrap_bins/maxbin2_bins/*", emit: maxbin2_bins, optional: true
+    path "metawrap_bins/metabat2_bins/*", pattern: "bin.[0-9]*.fa", emit: metabat2_bins, optional: true
+    path "metawrap_bins/concoct_bins/*", pattern: "bin.[0-9]*.fa", emit: concoct_bins, optional: true
+    path "metawrap_bins/maxbin2_bins/*", pattern: "bin.[0-9]*.fa", emit: maxbin2_bins, optional: true
     script:
     binners = ""
     if (params.concoct) {
@@ -383,6 +382,8 @@ process gunzip {
     gunzip -k --force R*.gz
     """
 }
+
+
 process gtdbtk_classify {
     debug true
     conda "bioconda::gtdbtk=2.3.2"
@@ -408,25 +409,16 @@ process gtdbtk_classify {
 }
 
 
-process kaiju {
-    debug true
-    conda "bioconda::kaiju"
-    maxForks 1
-    publishDir "${params.output}/kaiju", mode: "copy"
+process merge_kr2_br {
+    conda "anaconda::pandas conda-forge::numpy"
+    publishDir "${params.output}/", pattern: "*csv", mode: "copy"
     input:
-    path reads1
-    path reads2
+    tuple val(index1), path(kraken2)
+    tuple val(index2), path(bracken)
     output:
     path "*"
     script:
-    reads1 = reads1.join(',')
-    reads2 = reads2.join(',')
     """
-    kaiju-multi \
-    -z 5 \
-    -t nodes.dmp \
-    -f ${projectDir}/kaiju_data/kaiju_db*fmi \
-    -i $reads1 \
-    -j $reads2 \
+    python3 ${projectDir}/subscripts/merge_kr2br.py -k . -b .
     """
 }

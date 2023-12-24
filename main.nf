@@ -1,9 +1,9 @@
 include {preprocess} from "${projectDir}/01_preprocess.nf"
-include {mapping} from "${projectDir}/03_mapping.nf"
-include {classify_reads} from "${projectDir}/04_classify_reads.nf"
-include {assembly_megahit} from "${projectDir}/05_assembly_megahit.nf"
-include {binning_metawrap} from "${projectDir}/06_binning_metawrap.nf"
-include {binrefinement_metawrap} from "${projectDir}/06_binrefine_metawrap.nf"
+include {mapping} from "${projectDir}/02_mapping.nf"
+include {classify_reads} from "${projectDir}/03_classify_reads.nf"
+include {assembly_megahit} from "${projectDir}/04_assembly.nf"
+include {binning_metawrap} from "${projectDir}/05_binning.nf"
+include {binrefinement_metawrap} from "${projectDir}/06_binrefinement.nf"
 include {gtdbtk_classify} from "${projectDir}/07_classify_bins.nf"
 include {gunzip} from "${projectDir}/subscripts/process.nf"
 
@@ -36,7 +36,11 @@ workflow {
 
     //metawrap binning
     binning_metawrap( assembly_megahit.out.assembly, gunzip.out.reads1, gunzip.out.reads2 )
+    //metawrap binrefinement
     binning_metawrap.out.metabat2_bins.ifEmpty( 'null1' )
     binning_metawrap.out.concoct_bins.ifEmpty( 'null2' )
     binning_metawrap.out.maxbin2_bins.ifEmpty( 'null3' )
+    metawrap_binrefinement( binning_metawrap.out.metabat2_bins.collect(), binning_metawrap.out.concoct_bins.collect(), binning_metawrap.out.maxbin2_bins.collect() )
+    gtdbtk_classify( metawrap_binrefinement.out.refined_bins )
+
 }

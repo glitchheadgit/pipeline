@@ -1,0 +1,9 @@
+mw-env
+gtdbtk_data
+checkm_data
+pipeline_results
+work
+metawrap_bins
+test
+kraken2_data
+assembly_spades.nf

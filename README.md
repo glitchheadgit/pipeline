@@ -87,10 +87,10 @@ nextflow run bbmap_index.nf \
 --ref host.fna,human.fna
 ```
 
-### main.nf
+### Launch main.nf
 
 ```bash
-nextflow run preprocess.nf \
+nextflow run main.nf \
 -with-conda \
 -with-report \
 --ref host.fna,human.fna \
@@ -122,19 +122,6 @@ Optional parameters of main.nf with their default options:
     * --concoct false
     * --metabat2 false
     * --maxbin2 false
-
-### additional.nf
-
-```bash
-nextflow run additional.nf \
--with-conda \
--with-report \
---maxbin2 --concoct --metabat2 \ # duplicate binners that were specified in main.nf
---output pipeline_results # folder should be the same as --output of main.nf
-```
-
-Optional parameters of additional.nf with their default values:
-
-1. metawrap bin refinement options
+5. metawrap bin refinement options
     * metawrap_completion 50
     * metawrap_contamination 30

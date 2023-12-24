@@ -17,7 +17,7 @@ if ( dir.exists() ) {
 
 workflow {
     Channel
-        .fromPath( ref_list.toList() )
+        .fromPath( ref_list.toList(), checkIfExists: true )
         .map { tuple( it, c++ ) }
         .set { ref_ch }
     ref_ch.view()
