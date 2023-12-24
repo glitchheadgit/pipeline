@@ -2,7 +2,7 @@
 
 ## Info
 
-Pipeline consists of 3 separate scripts:
+Pipeline consists of 3 chief scripts:
 
 1. bbmap_index.nf - Makes indexes for your references and gives them appropriate identificator
 2. main.nf - includes following submodules:
@@ -15,8 +15,8 @@ Pipeline consists of 3 separate scripts:
     * binrefinement
     * bins classification
 
-All processes and their parameters can be found in subscripts/process.nf
-All information about submodules - in according nf scripts
+All processes and their parameters can be found in subscripts/process.nf \
+All information about submodules - in according nf scripts. Each submodule can be launched on its own as separate script!
 
 ## Requirements
 
