@@ -64,7 +64,7 @@ ln -s /path/to/kraken2_data /path/to/pipeline/kraken2_data
 
 ---
 
-1. Install MetaPhlAn:
+1. Install MetaPhlAn in the pipeline directory:
 
 ```bash
 mamba create -p /path/to/pipeline/metaphlan -c bioconda metaphlan
@@ -78,7 +78,7 @@ mamba run -p /path/to/pipeline/metaphlan metaphlan --install
 
 ### Installing metaWRAP
 
-1. Install it in the pipeline directory!
+1. Install it in the pipeline directory:
 
 ```bash
 mamba create -p /path/to/pipeline/mw-env -c ursky metawrap-mg=1.3.2
