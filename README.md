@@ -45,10 +45,10 @@ tar xvzf checkm_data_2015_01_16.tar.gz
 2. Link CheckM database to the "checkm_data" folder in pipeline:
 
 ```bash
-ln -s path/to/checkm_data /path/to/pipeline/checkm_data
+ln -s /path/to/checkm_data /path/to/pipeline/checkm_data
 ```
 
-### Kraken 2
+### Kraken 2 or MetaPhlAn
 
 1. Kraken requires ~16Gb of external data that needs to be downloaded and unarchived:
 
@@ -59,18 +59,32 @@ tar xvzf k2_standard_16gb_20231009.tar.gz
 2. Link Kraken2 db to the "kraken2_data" folder in pipeline:
 
 ```bash
-ln -s path/to/kraken2_data /path/to/pipeline/kraken2_data
+ln -s /path/to/kraken2_data /path/to/pipeline/kraken2_data
 ```
+
+---
+
+1. Install MetaPhlAn:
+
+```bash
+mamba create -p /path/to/pipeline/metaphlan -c bioconda metaphlan
+```
+2. It requires ~15Gb of external data that needs to be downloaded:
+
+```bash
+mamba run -p /path/to/pipeline/metaphlan metaphlan --install 
+```
+
 
 ### Installing metaWRAP
 
-**Install it in the pipeline directory!**
+1. Install it in the pipeline directory!
 
 ```bash
 mamba create -p /path/to/pipeline/mw-env -c ursky metawrap-mg=1.3.2
 ```
 
-#### Make corrections to metaWRAP bin_refinement.sh script:
+2. Make corrections to metaWRAP bin_refinement.sh script:
 
 ```bash
 sed -i 's/(( $SIZE > 50000)) &&//g' /path/to/pipeline/mw-env/bin/metawrap-modules/bin_refinement.sh 
